@@ -6,7 +6,7 @@ This is based on a certain picoCTF challenge in 2021: https://youtu.be/-ixz-2gi9
 
 The idea of the attack comes with the vulnerability of the RSA cryptosystem, to which for some of the websites, the two prime numbers are either too small or too close to one another.
 This makes the factorization of modulo N feasible enough for the attacker to retrieve the private key.
-The main goal of this project is to quer10000 websites in parallel and find which ones are vulnerable to this attack.
+The main goal of this project is to query 10000 websites in parallel and find which ones are vulnerable to this attack.
 
 ## 2. Project Goals and Objectives
 We will split this project into two parts: Query and Attack
