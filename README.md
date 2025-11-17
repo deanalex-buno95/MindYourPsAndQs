@@ -16,26 +16,26 @@ We need to query each of the 10000 websites we will get from Tranco (https://tra
 - Retrieve the certificate.
 - Retrieve the public key and pull out:
     - Encryption exponent `e`.
-    - Modulus `N`.
+    - Modulus `n`.
 - Store the websites' certificate information into a collection (CSV), this will allow us to access the certificates locally without having to get them from the website again.
 
 ### 2.2 Attack
 To perform the attack, which is to steal the private key of vulnerable websites, we have to perform the following steps:
 - Parse through two (or more) different website certificates within the collection of 10K websites, which contains their `e` and `N`.
-- We look for the GCD of those website's public key moduli (`N1` and `N2`, `N1` and `N2` being each website's `N`):
-    - If `GCD(N1, N2) == 1`:
+- We look for the GCD of those website's public key moduli (`n1` and `n2`, `n1` and `n2` being each website's `N`):
+    - If `GCD(n1, n2) == 1`:
         - Both moduli are coprime and share no common factors.
         - Base case.
         - No vulnerability found, proceed to check other website certificates (note that it does not mean that neither of these websites are vulnerable, just that it is not discovered yet).
-    - If `GCD(N1, N2) > 1`:
-        - They share a prime number `P`.
+    - If `GCD(n1, n2) > 1`:
+        - They share a prime number `p`.
         - Collision case.
         - Vulnerability found, proceed to use RSA algorithm.
 - For jackpot cases, we make use of the RSA algorithm to get the following for each certificate:
-    - Get the second prime number `Q = N / P`.
-    - Get the Euler's Totient function `λ(N) = LCM(P - 1, Q - 1)`.
-    - Get the decryption exponent `d`, where `(d * e) ≡ 1 mod λ(N)`.
-    - Retrieve the private key `(d, N)`.
+    - Get the second prime number `q = n / p`.
+    - Get the Euler's Totient function `λ(n) = LCM(p - 1, q - 1)`.
+    - Get the decryption exponent `d`, where `(d * e) ≡ 1 mod λ(n)`.
+    - Retrieve the private key `(d, n)`.
 
 The ones that can be attacked (fit the jackpot case) will be shown in the final output.
 
@@ -47,7 +47,7 @@ In both cases, we may need to use either `asyncio`, `concurrent`, or `threads` t
 ### 3.1 Query Script
 We will extract the certificates in the query script, using the following modules (this is necessary for certificate info collection):
 - `ssl`: To create a secure socket connection to the website's host and port and collect the certificate.
-- `cryptography`: To parse the certificate and collect the information of `e` and `N`.
+- `cryptography`: To parse the certificate and collect the information of `e` and `n`.
 - `csv`: To parse through each domain in the websites CSV file and write the certificate information to another CSV file.
 
 ### 3.2 Attack Script
