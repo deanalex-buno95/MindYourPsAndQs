@@ -30,12 +30,12 @@ To perform the attack, which is to steal the private key of vulnerable websites,
     - If `GCD(N1, N2) > 1`:
         - They share a prime number `P`.
         - Collision case.
-        - Vulnerabiliy found, proceed to use RSA algorithm.
+        - Vulnerability found, proceed to use RSA algorithm.
 - For jackpot cases, we make use of the RSA algorithm to get the following for each certificate:
     - Get the second prime number `Q = N / P`.
-    - Get the Euler's Totient function `Φ(N) = (P - 1) * (Q - 1)`
-    - Get the decryption exponent `d`, where `(d * e) ≡ 1 mod Φ(N)`
-    - Retrieve the private key `(d, n)`
+    - Get the Euler's Totient function `λ(N) = LCM(P - 1, Q - 1)`.
+    - Get the decryption exponent `d`, where `(d * e) ≡ 1 mod λ(N)`.
+    - Retrieve the private key `(d, N)`.
 
 The ones that can be attacked (fit the jackpot case) will be shown in the final output.
 
