@@ -1,4 +1,7 @@
 # Download required modules here.
 
+## Testing
+pytest
+
 ## Cryptography
 cryptography
