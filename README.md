@@ -21,8 +21,8 @@ We need to query each of the 10000 websites we will get from Tranco (https://tra
 
 ### 2.2 Attack
 To perform the attack, which is to steal the private key of vulnerable websites, we have to perform the following steps:
-- Parse through two (or more) different website certificates within the collection of 10K websites, which contains their `e` and `N`.
-- We look for the GCD of those website's public key moduli (`n1` and `n2`, `n1` and `n2` being each website's `N`):
+- Parse through two (or more) different website certificates within the collection of 10K websites, which contains their public key `(n, e)`.
+- We look for the GCD of those website's public key moduli (`n1` and `n2` being each website's `n`):
     - If `GCD(n1, n2) == 1`:
         - Both moduli are coprime and share no common factors.
         - Base case.
@@ -35,7 +35,7 @@ To perform the attack, which is to steal the private key of vulnerable websites,
     - Get the second prime number `q = n / p`.
     - Get the Euler's Totient function `λ(n) = LCM(p - 1, q - 1)`.
     - Get the decryption exponent `d`, where `(d * e) ≡ 1 mod λ(n)`.
-    - Retrieve the private key `(d, n)`.
+    - Retrieve the private key `(n, d)`.
 
 The ones that can be attacked (fit the jackpot case) will be shown in the final output.
 
