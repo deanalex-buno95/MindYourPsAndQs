@@ -47,22 +47,11 @@ async def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443
         await writer.wait_closed()
 
         # Deserialize the peer certificate.
-        return {
-            "certificate": x509.load_der_x509_certificate(der_cert, default_backend()),
-            "success": True
-        }
-    except (ssl.SSLError, asyncio.TimeoutError) as known_error:  # Catch SSL error.
-        return {
-            "certificate": None,
-            "success": False,
-            "error": f"Known Error — {str(known_error)}: {known_error}"
-        }
-    except Exception as unexpected_error:  # Catch any other exception.
-        return {
-            "certificate": None,
-            "success": False,
-            "error": f"Unexpected Error — {str(unexpected_error)}: {unexpected_error}"
-        }
+        return x509.load_der_x509_certificate(der_cert, default_backend())
+    except (ssl.SSLError, asyncio.TimeoutError):  # Catch these specific errors.
+        return None
+    except Exception:  # Catch any other exception.
+        return None
 
 
 def get_rsa_public_key(certificate: x509.Certificate) -> tuple[str, int] | None:
