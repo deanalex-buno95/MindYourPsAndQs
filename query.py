@@ -3,14 +3,15 @@ Query Script (query.py)
 
 Retrieve the RSA public keys of at least 10K websites.
 """
-import socket
+import asyncio
 import ssl
+
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 
 
-def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443) -> x509.Certificate | None:
+async def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443) -> x509.Certificate | None:
     """
     Load a certificate from a website domain.
 
@@ -20,19 +21,48 @@ def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443) -> x
     :return: X509 certificate or None.
     """
     try:
-        with socket.create_connection((domain, port)) as sock:
-            with context.wrap_socket(sock, server_hostname=domain) as ssock:
-                # Get the peer certificate in serialized binary (DER) format.
-                der_cert = ssock.getpeercert(binary_form=True)
+        # Synchronous Socket Module Use…
+        # with socket.create_connection((domain, port)) as sock:
+        #     with context.wrap_socket(sock, server_hostname=domain) as ssock:
+        #         # Get the peer certificate in serialized binary (DER) format.
+        #         der_cert = ssock.getpeercert(binary_form=True)
+
+        # Asynchronous implementation (Socket is internally run here)
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(
+                host=domain,
+                port=port,
+                ssl=context,
+                server_hostname=domain
+            ),
+            timeout=15  # Maximum time to get a connection (set to 15 seconds).
+        )  # Get StreamReader, StreamWriter from a successful connection.
+
+        # Get the peer certificate in serialized binary (DER) format.
+        ssl_object = writer.get_extra_info("ssl_object")
+        der_cert = ssl_object.getpeercert(binary_form=True)
+
+        # Close connection.
+        writer.close()
+        await writer.wait_closed()
 
         # Deserialize the peer certificate.
-        return x509.load_der_x509_certificate(der_cert, default_backend())
-    except ssl.SSLError:  # Catch SSL error.
-        return None
-    except socket.error:  # Catch socket error.
-        return None
-    except Exception:  # Catch any other exception.
-        return None
+        return {
+            "certificate": x509.load_der_x509_certificate(der_cert, default_backend()),
+            "success": True
+        }
+    except (ssl.SSLError, asyncio.TimeoutError) as known_error:  # Catch SSL error.
+        return {
+            "certificate": None,
+            "success": False,
+            "error": f"Known Error — {str(known_error)}: {known_error}"
+        }
+    except Exception as unexpected_error:  # Catch any other exception.
+        return {
+            "certificate": None,
+            "success": False,
+            "error": f"Unexpected Error — {str(unexpected_error)}: {unexpected_error}"
+        }
 
 
 def get_rsa_public_key(certificate: x509.Certificate) -> tuple[str, int] | None:
