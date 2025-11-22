@@ -4,6 +4,7 @@ Test Query Script
 test_query.py
 """
 from pprint import pprint
+import asyncio
 import pytest
 import query
 import ssl
@@ -15,12 +16,33 @@ async def test_query_load_certificate():
     Test Query Script with loading a single certificate.
     """
     print("\nTesting Query Script with loading a single certificate…\n")
-    certificate_record = await query.load_certificate(
+    test_domain = "mail.ru"
+    certificate = await query.load_certificate(
         ssl.create_default_context(),
-        "mail.ru"
+        test_domain
     )
-    print("Certificate of 'mail.ru':")
-    pprint(certificate_record)
+    print(f"Certificate of '{test_domain}': {certificate}")
+
+
+def test_query_get_public_key():
+    """
+    Test Query Script with getting the RSA public key values.
+    """
+    print("\nTesting Query Script with getting the RSA public key values…\n")
+    test_domain = "mail.ru"
+    certificate = asyncio.run(
+        query.load_certificate(
+            ssl.create_default_context(),
+            test_domain
+        )
+    )
+    public_key = query.get_rsa_public_key(certificate)
+    if public_key:
+        print(f"Public key of '{test_domain}':")
+        print(f"Modulus (in hex): {hex(public_key[0])}")
+        print(f"Public exponent: {public_key[1]}")
+    else:
+        print("No public key found.")
 
 
 def test_query_load_certificates():
