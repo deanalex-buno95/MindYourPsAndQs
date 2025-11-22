@@ -3,20 +3,24 @@ Test Query Script
 
 test_query.py
 """
+from pprint import pprint
 import pytest
 import query
 import ssl
 
 
-def test_query_load_certificate():
+@pytest.mark.asyncio
+async def test_query_load_certificate():
     """
     Test Query Script with loading a single certificate.
     """
-    certificate_record = query.load_certificate(
+    print("\nTesting Query Script with loading a single certificate…\n")
+    certificate_record = await query.load_certificate(
         ssl.create_default_context(),
         "mail.ru"
     )
-    print(certificate_record)
+    print("Certificate of 'mail.ru':")
+    pprint(certificate_record)
 
 
 def test_query_load_certificates():
