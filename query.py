@@ -11,14 +11,14 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 
 
-async def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443) -> x509.Certificate | None:
+async def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443):
     """
     Load a certificate from a website domain.
 
     :param context: TLS/SSL context
     :param domain: Website domain to load for public key extraction.
     :param port: Port number for the connection (default: 443).
-    :return: X509 certificate or None.
+    :return: Dictionary of certificate data.
     """
     try:
         # Synchronous Socket Module Use…
@@ -48,18 +48,21 @@ async def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443
 
         # Deserialize the peer certificate.
         return {
+            "domain": domain,
             "success": True,
             "certificate": x509.load_der_x509_certificate(der_cert, default_backend()),
         }
     except (ssl.SSLError, asyncio.TimeoutError) as known_error:  # Catch SSL error.
         return {
+            "domain": domain,
             "success": False,
-            "error": f"Known Error — {str(known_error)}: {known_error}",
+            "error": known_error,
         }
     except Exception as unexpected_error:  # Catch any other exception.
         return {
+            "domain": domain,
             "success": False,
-            "error": f"Unexpected Error — {str(unexpected_error)}: {unexpected_error}",
+            "error": unexpected_error,
         }
 
 
