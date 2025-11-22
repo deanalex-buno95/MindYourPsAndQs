@@ -54,23 +54,30 @@ async def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443
         return None
 
 
-def get_rsa_public_key(certificate: x509.Certificate) -> tuple[str, int] | None:
+def get_rsa_public_key(certificate: x509.Certificate | None) -> tuple[int, int] | None:
     """
     Retrieve the RSA public key from the certificate, if available.
 
     :param certificate: X509 certificate of a domain.
-    :return: Public key (`n_hex`, `e`).
+    :return: Public key (`n`, `e`).
     """
-    # Get public key.
-    public_key = certificate.public_key()
+    # Check if a certificate actually exists.
+    if not certificate:
+        return None
 
-    # Check if the public key is from RSA, then retrieve the public numbers.
-    if isinstance(public_key, RSAPublicKey):
-        public_numbers = public_key.public_numbers()
-        n_hex = hex(public_numbers.n)
-        e = public_numbers.e
-        return n_hex, e
-    else:
+    # Try to get public key.
+    try:
+        public_key = certificate.public_key()
+
+        # Check if the public key is from RSA, then retrieve the public numbers.
+        if isinstance(public_key, RSAPublicKey):
+            public_numbers = public_key.public_numbers()
+            n = public_numbers.n
+            e = public_numbers.e
+            return n, e
+        else:
+            return None
+    except Exception:  # Catch any exceptions.
         return None
 
 
