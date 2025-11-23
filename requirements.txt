@@ -2,6 +2,7 @@
 
 ## Testing
 pytest
+pytest-asyncio
 
 ## Cryptography
 cryptography
