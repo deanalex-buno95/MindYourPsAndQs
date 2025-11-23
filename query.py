@@ -3,7 +3,8 @@ Query Script (query.py)
 
 Retrieve the RSA public keys of at least 10K websites.
 """
-from typing import Any
+import csv
+from typing import Any, Iterator
 
 import asyncio
 import ssl
@@ -85,7 +86,7 @@ async def process_domain(domain: str, context: ssl.SSLContext) -> dict[str, Any]
 
     :param domain: Website domain to load for public key extraction.
     :param context: TLS/SSL context for connection.
-    :return: Either a dictionary of the domain and public key components, or None if the public key taken is not
+    :return: Either a dictionary of the domain and public key components, or None if the public key taken is not RSA.
     """
     certificate = await load_certificate(context, domain)
     rsa_public_key = get_rsa_public_key(certificate)
@@ -98,6 +99,19 @@ async def process_domain(domain: str, context: ssl.SSLContext) -> dict[str, Any]
         }
 
     return None
+
+
+def generate_domains_from_csv(filename: str) -> Iterator[str]:
+    """
+    Generate domains from a CSV file (use up to 1M sites).
+    """
+    with open(filename) as csvfile:
+        # Get rows of domains.
+        domains = csv.reader(csvfile)
+
+        for domain in domains:
+            # Yield the domain.
+            yield domain[0]
 
 
 def load_certificates(domains: list[str], port: int = 443):
