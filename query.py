@@ -3,6 +3,8 @@ Query Script (query.py)
 
 Retrieve the RSA public keys of at least 10K websites.
 """
+from typing import Any
+
 import asyncio
 import ssl
 
@@ -21,12 +23,6 @@ async def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443
     :return: X509 certificate or None.
     """
     try:
-        # Synchronous Socket Module Use…
-        # with socket.create_connection((domain, port)) as sock:
-        #     with context.wrap_socket(sock, server_hostname=domain) as ssock:
-        #         # Get the peer certificate in serialized binary (DER) format.
-        #         der_cert = ssock.getpeercert(binary_form=True)
-
         # Asynchronous implementation (Socket is internally run here)
         reader, writer = await asyncio.wait_for(
             asyncio.open_connection(
@@ -79,6 +75,29 @@ def get_rsa_public_key(certificate: x509.Certificate | None) -> tuple[int, int] 
             return None
     except Exception:  # Catch any exceptions.
         return None
+
+
+async def process_domain(domain: str, context: ssl.SSLContext) -> dict[str, Any] | None:
+    """
+    Asynchronously process a single domain:
+    - Load certificate from a website domain.
+    - Retrieve the domain's RSA public key.
+
+    :param domain: Website domain to load for public key extraction.
+    :param context: TLS/SSL context for connection.
+    :return: Either a dictionary of the domain and public key components, or None if the public key taken is not
+    """
+    certificate = await load_certificate(context, domain)
+    rsa_public_key = get_rsa_public_key(certificate)
+
+    if rsa_public_key:
+        return {
+            "domain": domain,
+            "modulus_hex": hex(rsa_public_key[0]),
+            "public_exponent": rsa_public_key[1],
+        }
+
+    return None
 
 
 def load_certificates(domains: list[str], port: int = 443):
