@@ -56,7 +56,7 @@ def get_rsa_public_key(certificate: x509.Certificate | None) -> tuple[int, int] 
     Retrieve the RSA public key from the certificate, if available.
 
     :param certificate: X509 certificate of a domain.
-    :return: Public key (`n`, `e`).
+    :return: Public key (`n_hex`, `e`).
     """
     # Check if a certificate actually exists.
     if not certificate:
@@ -69,9 +69,9 @@ def get_rsa_public_key(certificate: x509.Certificate | None) -> tuple[int, int] 
         # Check if the public key is from RSA, then retrieve the public numbers.
         if isinstance(public_key, RSAPublicKey):
             public_numbers = public_key.public_numbers()
-            n = public_numbers.n
+            n_hex = hex(public_numbers.n)
             e = public_numbers.e
-            return n, e
+            return n_hex, e
         else:
             return None
     except Exception:  # Catch any exceptions.
@@ -94,7 +94,7 @@ async def process_domain(domain: str, context: ssl.SSLContext) -> dict[str, Any]
     if rsa_public_key:
         return {
             "domain": domain,
-            "modulus_hex": hex(rsa_public_key[0]),
+            "modulus_hex": rsa_public_key[0],
             "public_exponent": rsa_public_key[1],
         }
 
