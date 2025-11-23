@@ -63,6 +63,22 @@ async def test_query_process_domain():
         print(f"No domain record for '{test_domain}'.")
 
 
+def test_query_generate_domains_from_csv():
+    """
+    Test Query Script with generating multiple domains from a CSV file.
+    """
+    print("\nTesting Query Script with generating multiple domains from a CSV file.\n")
+    test_number_of_domains = 10
+    tranco_csv = "input_file/tranco.csv"
+    domain_generator = query.generate_domains_from_csv(tranco_csv)
+    i = 0
+    for domain in domain_generator:
+        if i == test_number_of_domains:
+            break
+        print(domain)
+        i += 1
+
+
 def test_query_load_certificates():
     """
     Test Query Script with loading multiple certificates at once and get the RSA public keys of available certificates.
