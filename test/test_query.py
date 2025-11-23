@@ -45,6 +45,24 @@ def test_query_get_public_key():
         print(f"No RSA public key found for '{test_domain}'.")
 
 
+@pytest.mark.asyncio
+async def test_query_process_domain():
+    """
+    Test Query Script with processing a single domain.
+    """
+    print("\nTesting Query Script with processing a single domain.\n")
+    test_domain = "mail.ru"
+    domain_record = await query.process_domain(
+        test_domain,
+        ssl.create_default_context(),
+    )
+    if domain_record:
+        print(f"Domain '{test_domain}':")
+        pprint(domain_record)
+    else:
+        print(f"No domain record for '{test_domain}'.")
+
+
 def test_query_load_certificates():
     """
     Test Query Script with loading multiple certificates at once and get the RSA public keys of available certificates.
