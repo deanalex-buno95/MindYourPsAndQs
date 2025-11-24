@@ -220,7 +220,18 @@ async def main():
     """
     Main entry point.
     """
-    pass
+    # Create the domain generator.
+    domains = generate_domains_from_csv("input_file/tranco.csv")
+
+    # Process the domains to collect the RSA public keys.
+    rsa_public_keys_collected = await process_domains(domains)
+
+    # Write the RSA public keys into the output CSV file.
+    fieldnames = ["domain", "modulus_hex", "public_exponent"]
+    with open("output_file/rsa_public_keys.csv", "w", newline="") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rsa_public_keys_collected)
 
 
 if __name__ == "__main__":
