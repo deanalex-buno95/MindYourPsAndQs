@@ -33,8 +33,8 @@ To perform the attack, which is to steal the private key of vulnerable websites,
         - Vulnerability found, proceed to use RSA algorithm.
 - For jackpot cases, we make use of the RSA algorithm to get the following for each certificate:
     - Get the second prime number `q = n / p`.
-    - Get the Euler's Totient function `λ(n) = LCM(p - 1, q - 1)`.
-    - Get the decryption exponent `d`, where `(d * e) ≡ 1 mod λ(n)`.
+    - Get the Euler's Totient function `φ(n) = (p - 1)(q - 1)`.
+    - Get the decryption exponent `d`, where `(d * e) ≡ 1 mod φ(n)`.
     - Retrieve the private key `(n, d)`.
 
 The ones that can be attacked (fit the jackpot case) will be shown in the final output.
