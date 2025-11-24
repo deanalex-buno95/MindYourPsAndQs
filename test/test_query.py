@@ -39,7 +39,7 @@ def test_query_get_public_key():
     public_key = query.get_rsa_public_key(certificate)
     if public_key:
         print(f"RSA public key of '{test_domain}':")
-        print(f"- Modulus (in hex): {hex(public_key[0])}")
+        print(f"- Modulus (in hex): {(public_key[0])}")
         print(f"- Public exponent: {public_key[1]}")
     else:
         print(f"No RSA public key found for '{test_domain}'.")
