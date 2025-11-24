@@ -30,9 +30,7 @@ def test_query_get_public_key():
     """
     print("\nTesting Query Script with getting the RSA public key values…\n")
     context = ssl.create_default_context()
-    context.maximum_version = ssl.TLSVersion.TLSv1_2
-    context.set_ciphers("RSA")
-    test_domain = "google.com"
+    test_domain = "mail.ru"
     certificate = asyncio.run(
         query.load_certificate(
             context,
@@ -55,9 +53,7 @@ async def test_query_process_domain():
     """
     print("\nTesting Query Script with processing a single domain.\n")
     context = ssl.create_default_context()
-    context.maximum_version = ssl.TLSVersion.TLSv1_2
-    context.set_ciphers("RSA")
-    test_domain = "youtube.com"
+    test_domain = "mail.ru"
     domain_record = await query.process_domain(
         context,
         test_domain,

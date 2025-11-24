@@ -142,10 +142,8 @@ async def process_domains(
     :param batch_size: Number of domains to retrieve at a time.
     :return: List of at least 10K domains with retrieved RSA public keys.
     """
-    # Set context to force RSA public keys only (via downgrading the client to a legacy one).
+    # Set context.
     context = ssl.create_default_context()
-    context.maximum_version = ssl.TLSVersion.TLSv1_2
-    context.set_ciphers("RSA")
 
     semaphore = asyncio.Semaphore(max_concurrent)  # Rate limiter
     rsa_keys_collected = []
