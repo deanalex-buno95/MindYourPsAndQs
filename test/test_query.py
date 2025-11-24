@@ -29,10 +29,11 @@ def test_query_get_public_key():
     Test Query Script with getting the RSA public key values.
     """
     print("\nTesting Query Script with getting the RSA public key values…\n")
+    context = ssl.create_default_context()
     test_domain = "mail.ru"
     certificate = asyncio.run(
         query.load_certificate(
-            ssl.create_default_context(),
+            context,
             test_domain
         )
     )
@@ -51,10 +52,11 @@ async def test_query_process_domain():
     Test Query Script with processing a single domain.
     """
     print("\nTesting Query Script with processing a single domain.\n")
+    context = ssl.create_default_context()
     test_domain = "mail.ru"
     domain_record = await query.process_domain(
+        context,
         test_domain,
-        ssl.create_default_context(),
     )
     if domain_record:
         print(f"Domain '{test_domain}':")

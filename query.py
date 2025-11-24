@@ -78,14 +78,14 @@ def get_rsa_public_key(certificate: x509.Certificate | None) -> tuple[int, int] 
         return None
 
 
-async def process_domain(domain: str, context: ssl.SSLContext) -> dict[str, Any] | None:
+async def process_domain(context: ssl.SSLContext, domain: str) -> dict[str, Any] | None:
     """
     Asynchronously process a single domain:
     - Load certificate from a website domain.
     - Retrieve the domain's RSA public key.
 
-    :param domain: Website domain to load for public key extraction.
     :param context: TLS/SSL context for connection.
+    :param domain: Website domain to load for public key extraction.
     :return: Either a dictionary of the domain and public key components, or None if the public key taken is not RSA.
     """
     certificate = await load_certificate(context, domain)
@@ -142,7 +142,9 @@ async def process_domains(
     :param batch_size: Number of domains to retrieve at a time.
     :return: List of at least 10K domains with retrieved RSA public keys.
     """
+    # Set context.
     context = ssl.create_default_context()
+
     semaphore = asyncio.Semaphore(max_concurrent)  # Rate limiter
     rsa_keys_collected = []
     domains_processed = 0
@@ -152,7 +154,7 @@ async def process_domains(
         Wrapper function for `process_domain` with semaphore control.
         """
         async with semaphore:
-            return await process_domain(domain, context)
+            return await process_domain(context, domain)
 
     batch = []  # Batch used
 
