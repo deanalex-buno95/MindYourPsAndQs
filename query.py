@@ -214,3 +214,14 @@ async def process_domains(
     print("-" * 67)
 
     return rsa_keys_collected
+
+
+async def main():
+    """
+    Main entry point.
+    """
+    pass
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
