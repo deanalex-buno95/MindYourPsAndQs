@@ -79,21 +79,21 @@ def test_query_generate_domains_from_csv():
         i += 1
 
 
-def test_query_load_certificates():
+@pytest.mark.asyncio
+async def test_query_process_domains():
     """
-    Test Query Script with loading multiple certificates at once and get the RSA public keys of available certificates.
+    Test Query Script with processing multiple domains.
     """
-    domains_list = [
-        "google.com",
-        "mail.ru",
-        "microsoft.com",
-        "facebook.com",
-        "cloudflare.com",
-        "amazonaws.com",
-        "googleapis.com",
-        "dzen.ru",
-        "youtube.com",
-        "apple.com"
-    ]
-    certificate_records = query.load_certificates(domains_list)
-    print(certificate_records)
+    print("\nTesting Query Script with processing multiple domains.\n")
+    tranco_csv = "input_file/tranco.csv"
+    domain_generator = query.generate_domains_from_csv(tranco_csv)
+    rsa_keys_collected = await query.process_domains(
+        domain_generator=domain_generator,
+        target_count=20,
+        max_concurrent=20,
+        batch_size=20
+    )
+    print("List of RSA public keys collected:")
+    for rsa_key in rsa_keys_collected:
+        print(rsa_key)
+    print("-" * 67)
