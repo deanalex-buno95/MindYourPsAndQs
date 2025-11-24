@@ -146,8 +146,7 @@ async def process_domains(
     batch = []  # Batch used
 
     print("-" * 67)
-    print(f"Number of domains to collect: {target_count}")
-    print("")
+    print(f"Number of RSA public keys to collect: {target_count}")
     print(f"Processing domains...")
 
     for domain in domain_generator:  # Iterate through each generator.
