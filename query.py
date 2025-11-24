@@ -78,14 +78,14 @@ def get_rsa_public_key(certificate: x509.Certificate | None) -> tuple[int, int] 
         return None
 
 
-async def process_domain(domain: str, context: ssl.SSLContext) -> dict[str, Any] | None:
+async def process_domain(context: ssl.SSLContext, domain: str) -> dict[str, Any] | None:
     """
     Asynchronously process a single domain:
     - Load certificate from a website domain.
     - Retrieve the domain's RSA public key.
 
-    :param domain: Website domain to load for public key extraction.
     :param context: TLS/SSL context for connection.
+    :param domain: Website domain to load for public key extraction.
     :return: Either a dictionary of the domain and public key components, or None if the public key taken is not RSA.
     """
     certificate = await load_certificate(context, domain)
