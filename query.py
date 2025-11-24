@@ -101,13 +101,24 @@ async def process_domain(domain: str, context: ssl.SSLContext) -> dict[str, Any]
     return None
 
 
-def generate_domains_from_csv(filename: str) -> Iterator[str]:
+def generate_domains_from_csv(
+    filename: str,
+    rows_skipped: int = 0
+) -> Iterator[str]:
     """
     Generate domains from a CSV file (use up to 1M sites).
+
+    :param filename: CSV filename.
+    :param rows_skipped: Number of rows to skip when generating domains.
+    :return: Iterator of domain names.
     """
     with open(filename) as csvfile:
         # Get rows of domains.
         domains = csv.reader(csvfile)
+
+        # Skip rows if necessary.
+        for _ in range(rows_skipped):
+            next(domains)
 
         for domain in domains:
             # Yield the domain.
