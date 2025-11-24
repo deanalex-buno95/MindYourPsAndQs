@@ -101,13 +101,24 @@ async def process_domain(domain: str, context: ssl.SSLContext) -> dict[str, Any]
     return None
 
 
-def generate_domains_from_csv(filename: str) -> Iterator[str]:
+def generate_domains_from_csv(
+    filename: str,
+    rows_skipped: int = 0
+) -> Iterator[str]:
     """
     Generate domains from a CSV file (use up to 1M sites).
+
+    :param filename: CSV filename.
+    :param rows_skipped: Number of rows to skip when generating domains.
+    :return: Iterator of domain names.
     """
     with open(filename) as csvfile:
         # Get rows of domains.
         domains = csv.reader(csvfile)
+
+        # Skip rows if necessary.
+        for _ in range(rows_skipped):
+            next(domains)
 
         for domain in domains:
             # Yield the domain.
@@ -203,3 +214,25 @@ async def process_domains(
     print("-" * 67)
 
     return rsa_keys_collected
+
+
+async def main():
+    """
+    Main entry point.
+    """
+    # Create the domain generator.
+    domains = generate_domains_from_csv("input_file/tranco.csv")
+
+    # Process the domains to collect the RSA public keys.
+    rsa_public_keys_collected = await process_domains(domains)
+
+    # Write the RSA public keys into the output CSV file.
+    fieldnames = ["domain", "modulus_hex", "public_exponent"]
+    with open("output_file/rsa_public_keys.csv", "w", newline="") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rsa_public_keys_collected)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
