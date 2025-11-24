@@ -3,6 +3,9 @@ Query Script (query.py)
 
 Retrieve the RSA public keys of at least 10K websites.
 """
+import csv
+from typing import Any, Iterator
+
 import asyncio
 import ssl
 
@@ -21,12 +24,6 @@ async def load_certificate(context: ssl.SSLContext, domain: str, port: int = 443
     :return: X509 certificate or None.
     """
     try:
-        # Synchronous Socket Module Use…
-        # with socket.create_connection((domain, port)) as sock:
-        #     with context.wrap_socket(sock, server_hostname=domain) as ssock:
-        #         # Get the peer certificate in serialized binary (DER) format.
-        #         der_cert = ssock.getpeercert(binary_form=True)
-
         # Asynchronous implementation (Socket is internally run here)
         reader, writer = await asyncio.wait_for(
             asyncio.open_connection(
@@ -59,7 +56,7 @@ def get_rsa_public_key(certificate: x509.Certificate | None) -> tuple[int, int] 
     Retrieve the RSA public key from the certificate, if available.
 
     :param certificate: X509 certificate of a domain.
-    :return: Public key (`n`, `e`).
+    :return: Public key (`n_hex`, `e`).
     """
     # Check if a certificate actually exists.
     if not certificate:
@@ -72,44 +69,137 @@ def get_rsa_public_key(certificate: x509.Certificate | None) -> tuple[int, int] 
         # Check if the public key is from RSA, then retrieve the public numbers.
         if isinstance(public_key, RSAPublicKey):
             public_numbers = public_key.public_numbers()
-            n = public_numbers.n
+            n_hex = hex(public_numbers.n)
             e = public_numbers.e
-            return n, e
+            return n_hex, e
         else:
             return None
     except Exception:  # Catch any exceptions.
         return None
 
 
-def load_certificates(domains: list[str], port: int = 443):
+async def process_domain(domain: str, context: ssl.SSLContext) -> dict[str, Any] | None:
     """
-    Load a list of certificates from a list of website domains.
+    Asynchronously process a single domain:
+    - Load certificate from a website domain.
+    - Retrieve the domain's RSA public key.
 
-    :param domains: List of website domains to load for public key extraction.
-    :param port: Port number for the connection (default: 443).
-    :return: List of collected certificates.
+    :param domain: Website domain to load for public key extraction.
+    :param context: TLS/SSL context for connection.
+    :return: Either a dictionary of the domain and public key components, or None if the public key taken is not RSA.
     """
-    # Create a default SSL context to manage TLS/SSL settings to retrieve certificate.
+    certificate = await load_certificate(context, domain)
+    rsa_public_key = get_rsa_public_key(certificate)
+
+    if rsa_public_key:
+        return {
+            "domain": domain,
+            "modulus_hex": rsa_public_key[0],
+            "public_exponent": rsa_public_key[1],
+        }
+
+    return None
+
+
+def generate_domains_from_csv(filename: str) -> Iterator[str]:
+    """
+    Generate domains from a CSV file (use up to 1M sites).
+    """
+    with open(filename) as csvfile:
+        # Get rows of domains.
+        domains = csv.reader(csvfile)
+
+        for domain in domains:
+            # Yield the domain.
+            yield domain[0]
+
+
+async def process_domains(
+    domain_generator: Iterator[str],
+    target_count: int = 10000,
+    max_concurrent: int = 100,
+    batch_size: int = 500,
+) -> list[dict[str, Any]]:
+    """
+    Asynchronously process a maximum of 1M domains:
+    - Stop the process when at least `target_count` domains have been loaded.
+    - Return the list of domains with retrieved RSA public keys.
+
+    :param domain_generator: Iterator of domain names.
+    :param target_count: Maximum number of domains to retrieve.
+    :param max_concurrent: Maximum number of concurrent requests.
+    :param batch_size: Number of domains to retrieve at a time.
+    :return: List of at least 10K domains with retrieved RSA public keys.
+    """
     context = ssl.create_default_context()
+    semaphore = asyncio.Semaphore(max_concurrent)  # Rate limiter
+    rsa_keys_collected = []
+    domains_processed = 0
 
-    # Get a list of certificate records of each domain.
-    certificate_records = []
-    for domain in domains:
+    async def process_domain_with_semaphore(domain: str):
+        """
+        Wrapper function for `process_domain` with semaphore control.
+        """
+        async with semaphore:
+            return await process_domain(domain, context)
 
-        # Start a certificate record with the current domain iterated.
-        certificate_record = {"domain": domain}
+    batch = []  # Batch used
 
-        # Try to get the certificate.
-        certificate = load_certificate(context, domain, port)
+    print("-" * 67)
+    print(f"Number of RSA public keys to collect: {target_count}")
+    print(f"Processing domains...")
 
-        # Handle the certificate's public key.
-        if certificate:
-            certificate_rsa_public_key = get_rsa_public_key(certificate)
+    for domain in domain_generator:  # Iterate through each generator.
 
-            # Add the public numbers if found.
-            if certificate_rsa_public_key:
-                certificate_record["n_hex"] = certificate_rsa_public_key[0]
-                certificate_record["e"] = certificate_rsa_public_key[1]
-                certificate_records.append(certificate_record)
+        # Base case: Already have 10K+ domains
+        if len(rsa_keys_collected) >= target_count:
+            print("-" * 67)
+            print(f"Target already reached! Collected {len(rsa_keys_collected)} RSA public keys!")
+            break
 
-    return certificate_records
+        # Append domain to batch.
+        batch.append(domain)
+
+        # Process batch when full (reaches batch_size, default 500)
+        if len(batch) >= batch_size:
+
+            # Process the domains in the batch.
+            tasks = [process_domain_with_semaphore(domain) for domain in batch]
+            results = await asyncio.gather(*tasks)
+
+            # Filter out and add the found RSA public keys into the collection.
+            found_rsa_public_keys = [result for result in results if result is not None]
+            rsa_keys_collected.extend(found_rsa_public_keys)
+
+            # Progress updated.
+            domains_processed += len(batch)
+            print("-" * 67)
+            print(f"Number of domains processed: {domains_processed}")
+            print(f"Number of RSA public keys found: {len(rsa_keys_collected)}")
+
+            # Empty batch.
+            batch = []
+
+    if batch and len(rsa_keys_collected) < target_count:
+        # Process the domains in the partial batch.
+        tasks = [process_domain_with_semaphore(domain) for domain in batch]
+        results = await asyncio.gather(*tasks)
+
+        # Filter out and add the remaining found RSA public keys into the collection.
+        found_rsa_public_keys = [domain for domain in results if domain]
+        rsa_keys_collected.extend(found_rsa_public_keys)
+
+        # Progress updated.
+        domains_processed += len(batch)
+        print("-" * 67)
+        print(f"Number of domains processed: {domains_processed}")
+        print(f"Number of RSA public keys found: {len(rsa_keys_collected)}")
+
+    # Print out final results.
+    print("-" * 67)
+    print("Process Complete!")
+    print(f"Number of domains processed: {domains_processed}")
+    print(f"Number of RSA public keys found: {len(rsa_keys_collected)}")
+    print("-" * 67)
+
+    return rsa_keys_collected

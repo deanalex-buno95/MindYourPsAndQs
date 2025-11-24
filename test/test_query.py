@@ -39,27 +39,61 @@ def test_query_get_public_key():
     public_key = query.get_rsa_public_key(certificate)
     if public_key:
         print(f"RSA public key of '{test_domain}':")
-        print(f"- Modulus (in hex): {hex(public_key[0])}")
+        print(f"- Modulus (in hex): {(public_key[0])}")
         print(f"- Public exponent: {public_key[1]}")
     else:
         print(f"No RSA public key found for '{test_domain}'.")
 
 
-def test_query_load_certificates():
+@pytest.mark.asyncio
+async def test_query_process_domain():
     """
-    Test Query Script with loading multiple certificates at once and get the RSA public keys of available certificates.
+    Test Query Script with processing a single domain.
     """
-    domains_list = [
-        "google.com",
-        "mail.ru",
-        "microsoft.com",
-        "facebook.com",
-        "cloudflare.com",
-        "amazonaws.com",
-        "googleapis.com",
-        "dzen.ru",
-        "youtube.com",
-        "apple.com"
-    ]
-    certificate_records = query.load_certificates(domains_list)
-    print(certificate_records)
+    print("\nTesting Query Script with processing a single domain.\n")
+    test_domain = "mail.ru"
+    domain_record = await query.process_domain(
+        test_domain,
+        ssl.create_default_context(),
+    )
+    if domain_record:
+        print(f"Domain '{test_domain}':")
+        pprint(domain_record)
+    else:
+        print(f"No domain record for '{test_domain}'.")
+
+
+def test_query_generate_domains_from_csv():
+    """
+    Test Query Script with generating multiple domains from a CSV file.
+    """
+    print("\nTesting Query Script with generating multiple domains from a CSV file.\n")
+    test_number_of_domains = 10
+    tranco_csv = "input_file/tranco.csv"
+    domain_generator = query.generate_domains_from_csv(tranco_csv)
+    i = 0
+    for domain in domain_generator:
+        if i == test_number_of_domains:
+            break
+        print(domain)
+        i += 1
+
+
+@pytest.mark.asyncio
+async def test_query_process_domains():
+    """
+    Test Query Script with processing multiple domains.
+    """
+    print("\nTesting Query Script with processing multiple domains.\n")
+    tranco_csv = "input_file/tranco.csv"
+    domain_generator = query.generate_domains_from_csv(tranco_csv)
+    rsa_keys_collected = await query.process_domains(
+        domain_generator=domain_generator,
+        target_count=20,
+        max_concurrent=20,
+        batch_size=20
+    )
+    print("List of RSA public keys collected:")
+    for rsa_key in rsa_keys_collected:
+        print(rsa_key)
+    print("-" * 67)
