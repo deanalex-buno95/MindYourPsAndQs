@@ -152,7 +152,7 @@ async def process_domains(
         Wrapper function for `process_domain` with semaphore control.
         """
         async with semaphore:
-            return await process_domain(domain, context)
+            return await process_domain(context, domain)
 
     batch = []  # Batch used
 
