@@ -4,6 +4,7 @@ Query Script (query.py)
 Retrieve the RSA public keys of at least 10K websites.
 """
 import csv
+import time
 from typing import Any, Iterator
 
 import asyncio
@@ -128,8 +129,8 @@ def generate_domains_from_csv(
 async def process_domains(
     domain_generator: Iterator[str],
     target_count: int = 10000,
-    max_concurrent: int = 100,
-    batch_size: int = 500,
+    max_concurrent: int = 500,
+    batch_size: int = 5000,
 ) -> list[dict[str, Any]]:
     """
     Asynchronously process a maximum of 1M domains:
@@ -159,6 +160,8 @@ async def process_domains(
     print("-" * 67)
     print(f"Number of RSA public keys to collect: {target_count}")
     print(f"Processing domains...")
+
+    start_time = time.time()  # Start time.
 
     for domain in domain_generator:  # Iterate through each generator.
 
@@ -206,11 +209,14 @@ async def process_domains(
         print(f"Number of domains processed: {domains_processed}")
         print(f"Number of RSA public keys found: {len(rsa_keys_collected)}")
 
+    end_time = time.time()  # End time.
+
     # Print out final results.
     print("-" * 67)
     print("Process Complete!")
     print(f"Number of domains processed: {domains_processed}")
     print(f"Number of RSA public keys found: {len(rsa_keys_collected)}")
+    print(f"Time elapsed: {(end_time - start_time):.2f} seconds.")
     print("-" * 67)
 
     return rsa_keys_collected
