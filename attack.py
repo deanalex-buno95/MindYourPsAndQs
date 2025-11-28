@@ -98,8 +98,8 @@ def main(input_file):
                 print(f"    Skipping d for {domain_list[idx]}: e not invertible mod phi")
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 2:
-    #     print("Usage: python attack.py <input_csv>")
-    #     sys.exit(1)
-    # main(sys.argv[1])
-    main("./rsa_public_keys/rsa_public_keys.csv")  # Example hardcoded path for testing
+    if len(sys.argv) != 2:
+        print("Usage: python attack.py <input_csv>")
+        sys.exit(1)
+    main(sys.argv[1])
+    # main("./rsa_public_keys/rsa_public_keys.csv")  # Example hardcoded path for testing

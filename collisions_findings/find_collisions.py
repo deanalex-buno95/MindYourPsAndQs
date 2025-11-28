@@ -24,7 +24,7 @@ def find_shared_moduli(data):
 
 
 if __name__ == "__main__":
-    csv_file = './rsa_public_keys/rsa_public_keys.csv'
+    csv_file = '../rsa_public_keys/rsa_public_keys.csv'
     data = load_moduli(csv_file)
     print(f"Loaded {len(data)} domains.")
     
