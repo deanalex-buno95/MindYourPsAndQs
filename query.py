@@ -162,6 +162,7 @@ async def process_domains(
     print("-" * 67)
     print(f"Number of RSA public keys to collect: {target_count}")
     print(f"Processing domains...")
+    print("-" * 67)
 
     start_time = time.time()  # Start time.
 
@@ -169,8 +170,8 @@ async def process_domains(
 
         # Base case: Already have 10K+ domains
         if len(rsa_keys_collected) >= target_count:
-            print("-" * 67)
             print(f"Target already reached! Collected {len(rsa_keys_collected)} RSA public keys!")
+            print("-" * 67)
             break
 
         # Append domain to batch.
@@ -189,9 +190,9 @@ async def process_domains(
 
             # Progress updated.
             domains_processed += len(batch)
-            print("-" * 67)
             print(f"Number of domains processed: {domains_processed}")
             print(f"Number of RSA public keys found: {len(rsa_keys_collected)}")
+            print("-" * 67)
 
             # Empty batch.
             batch = []
@@ -207,14 +208,13 @@ async def process_domains(
 
         # Progress updated.
         domains_processed += len(batch)
-        print("-" * 67)
         print(f"Number of domains processed: {domains_processed}")
         print(f"Number of RSA public keys found: {len(rsa_keys_collected)}")
+        print("-" * 67)
 
     end_time = time.time()  # End time.
 
     # Print out final results.
-    print("-" * 67)
     print("Process Complete!")
     print(f"Number of domains processed: {domains_processed}")
     print(f"Number of RSA public keys found: {len(rsa_keys_collected)}")
