@@ -15,8 +15,8 @@ We will split this project into two parts: Query and Attack
 We need to query each of the 10000 websites we will get from Tranco (https://tranco-list.eu/) to do the following:
 - Retrieve the certificate.
 - Retrieve the public key and pull out:
-    - Encryption exponent `e`.
     - Modulus `n`.
+    - Encryption exponent `e`.
 - Store the websites' certificate information into a collection (CSV), this will allow us to access the certificates locally without having to get them from the website again.
 
 ### 2.2 Attack
@@ -42,17 +42,51 @@ The ones that can be attacked (fit the jackpot case) will be shown in the final 
 ## 3. Tech Stack
 Python will be used as our main language, and we will make use of two scripts: `query.py` and `attack.py`.
 
-In both cases, we may need to use either `asyncio`, `concurrent`, or `threads` to handle the large sample size.
+Before running any of the scripts, please set up your `.venv` within the repo and install the necessary packages in `requirements.txt`.
+
+```
+# Set up virtual environment.
+python -m venv .venv
+
+# Activate virtual environment.
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Linux/macOS
+
+# Install required packages.
+pip install -r requirements.txt
+```
 
 ### 3.1 Query Script
 We will extract the certificates in the query script, using the following modules (this is necessary for certificate info collection):
-- `ssl`: To create a secure socket connection to the website's host and port and collect the certificate.
-- `cryptography`: To parse the certificate and collect the information of `e` and `n`.
+- `asyncio`: To handle asynchronous I/O operations (using semaphores to run tasks concurrently).
+- `ssl`: To create the context of the connection to a domain to load the certificates.
+- `cryptography`: To parse the certificate and collect the information of `n` and `e`.
 - `csv`: To parse through each domain in the websites CSV file and write the certificate information to another CSV file.
+- `time`: To check the time it takes to get at least 10K public keys.
+
+First, we set up the generator function `generate_domains_from_csv` as an iterator to iterate domains in a stream-like manner, to avoid using the memory to store 1M domains.
+
+Next, we set up the SSL context and a semaphore that limits the number of connections to 500.
+
+Then, we iterate through each domain from the generator function.
+This process can fill up a batch up to 5000 domains.
+Once there are 5000 domains in a batch, 500 domains at a time will be run concurrently, from loading the certificate to getting the RSA public key (provided that it is available)
+Any available domains after running through the batch will be stored in an array and the batch is emptied, repeating the process.
+Once the aforementioned array hits the 10000-domain target, the final array is used as input to be written into a CSV file.
+
+To run the script:
+```
+python query.py
+```
 
 ### 3.2 Attack Script
 We will parse through the certificate information and implement a version of the RSA algorithm that fits our task:
 - Python can handle large numbers naturally, though we are not so sure for anything more than the 32-bit integer limit (perhaps we may need to look into BigNum).
+
+To run the script:
+```
+python attack.py <input_csv (e.g. rsa_public_keys/rsa_public_keys.csv)>
+```
 
 ## 4. Final Outcome
 A collection of websites (out of 10000) that are vulnerable to the attack.
