@@ -123,7 +123,7 @@ def generate_domains_from_csv(
 
         for domain in domains:
             # Yield the domain.
-            yield domain[0]
+            yield domain[1]
 
 
 async def process_domains(
