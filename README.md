@@ -57,14 +57,14 @@ pip install -r requirements.txt
 ```
 
 ### 3.1 Query Script
-We will extract the certificates in the query script, using the following modules (this is necessary for certificate info collection):
+We will extract the certificates with the query script, using the following modules (this is necessary for certificate info collection):
 - `asyncio`: To handle asynchronous I/O operations (using semaphores to run tasks concurrently).
 - `ssl`: To create the context of the connection to a domain to load the certificates.
 - `cryptography`: To parse the certificate and collect the information of `n` and `e`.
 - `csv`: To parse through each domain in the websites CSV file and write the certificate information to another CSV file.
 - `time`: To check the time it takes to get at least 10K public keys.
 
-First, we set up the generator function `generate_domains_from_csv` as an iterator to iterate domains in a stream-like manner, to avoid using the memory to store 1M domains.
+First, we set up the domain generator function as an iterator to iterate domains in a stream-like manner, to avoid using the memory to store 1M domains.
 
 Next, we set up the SSL context and a semaphore that limits the number of connections to 500.
 
@@ -80,8 +80,22 @@ python query.py
 ```
 
 ### 3.2 Attack Script
-We will parse through the certificate information and implement a version of the RSA algorithm that fits our task:
-- Python can handle large numbers naturally, though we are not so sure for anything more than the 32-bit integer limit (perhaps we may need to look into BigNum).
+We will perform the "Ps and Qs" attack with the attack script, using the following modules ():
+- `multiprocessing`: To handle asynchronous mathematical calculations.
+- `math`: Use math operations like GCD.
+- `collections`: Hash table.
+- `itertools`: Generate unique pairs.
+- `csv`: To parse through each domain in the websites CSV file and write the certificate information to another CSV file.
+
+First, we load the CSV file's public key information (containing the modulus `n` in hex and public exponent `e` as an integer).
+
+Next, we compute GCD in parallel.
+
+Then, compute `q` of each of the two domains, if they have a shared `p`.
+
+After that, for any `q` output, compute `φ(n)` and private exponent `d`.
+
+Finally, showcase their private key `(n, d)`.
 
 To run the script:
 ```
@@ -89,6 +103,5 @@ python attack.py <input_csv (e.g. rsa_public_keys/rsa_public_keys.csv)>
 ```
 
 ## 4. Final Outcome
-A collection of websites (out of 10000) that are vulnerable to the attack.
+Targeted domains (out of 10000) to attack.
 It showcases the need to implement high-quality, high-entropy random number generators when creating keys via the RSA cryptosystem.
-
