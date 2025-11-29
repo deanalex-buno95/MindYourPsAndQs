@@ -1,5 +1,6 @@
 # Mind Your Ps And Qs
 Created by Dean Alexander Buno and Lubo Zhou
+Presentation Link (Slides + Video): https://drive.google.com/drive/folders/1mpZi5Y5aO6LrPtLndgJpl1nVJmddI40V?usp=drive_link
 
 ## 1. Project Description
 This is based on a certain picoCTF challenge in 2021: https://youtu.be/-ixz-2gi9r0
